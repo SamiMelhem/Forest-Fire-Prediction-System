@@ -11,7 +11,7 @@ url = "https://api.open-meteo.com/v1/forecast"
 params = {
 	"latitude": 34.052235, # LA Coord
 	"longitude": -118.243683, # LA Coord
-	"hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m"],
+	"hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m", "apparent_temperature"],
     "wind_speed_unit": "ms",
     "forecast_days": 3
 }
