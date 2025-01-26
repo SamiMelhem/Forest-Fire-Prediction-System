@@ -11,33 +11,49 @@ url = "https://api.open-meteo.com/v1/forecast"
 params = {
 	"latitude": 34.052235, # LA Coord
 	"longitude": -118.243683, # LA Coord
-	"hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m"]
+	"hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m"],
+    "temperature_unit": "fahrenheit",
+    "forecast_days": 3
 }
 responses = openmeteo.weather_api(url, params=params)
 
-# Process first location. Add a for-loop for multiple locations or weather models
+# --- Process the first location ---
 response = responses[0]
 print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-print(f"Elevation {response.Elevation()} m asl")
-print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
-print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 
-# Process hourly data. The order of variables needs to be the same as requested.
+# --- Process hourly data ---
 hourly = response.Hourly()
 hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
 hourly_wind_speed_10m = hourly.Variables(1).ValuesAsNumpy()
 hourly_wind_direction_10m = hourly.Variables(2).ValuesAsNumpy()
 
-hourly_data = {"date": date_range(
-	start = to_datetime(hourly.Time(), unit = "s", utc = True),
-	end = to_datetime(hourly.TimeEnd(), unit = "s", utc = True),
-	freq = Timedelta(seconds = hourly.Interval()),
-	inclusive = "left"
-)}
+# Create a time index for each hourly observation
+hourly_data = {
+    "date": date_range(
+        start=to_datetime(hourly.Time(), unit="s", utc=True),
+        end=to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+        freq=Timedelta(seconds=hourly.Interval()),
+        inclusive="left"
+    ),
+    "temperature_2m": hourly_temperature_2m,
+    "wind_speed_10m": hourly_wind_speed_10m,
+    "wind_direction_10m": hourly_wind_direction_10m
+}
 
-hourly_data["temperature_2m"] = hourly_temperature_2m
-hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
-hourly_data["wind_direction_10m"] = hourly_wind_direction_10m
+hourly_dataframe = DataFrame(data=hourly_data)
+print("\nHourly dataframe:\n", hourly_dataframe.head(24)) 
+hourly_dataframe['day'] = hourly_dataframe['date'].dt.date
 
-hourly_dataframe = DataFrame(data = hourly_data)
-print(hourly_dataframe)
+hourly_dataframe.rename(columns={
+    "temperature_2m": "temperature (°F)",
+    "wind_speed_10m": "wind_speed (km/h)",
+    "wind_direction_10m": "wind_direction (°)"
+}, inplace=True)
+
+daily_means = hourly_dataframe.groupby('day').agg({
+    'temperature (°F)': 'mean',
+    'wind_speed (km/h)': 'mean',
+    'wind_direction (°)': 'mean'
+}).reset_index()
+
+print("\nDaily averages:\n", daily_means)
