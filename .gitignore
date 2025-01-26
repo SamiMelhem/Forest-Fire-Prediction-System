@@ -86,3 +86,5 @@ target/
 !.gitkeep
 
 ws-default-keypair.pem
+
+**/.cache.sqlite
