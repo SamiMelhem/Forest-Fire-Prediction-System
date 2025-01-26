@@ -9,8 +9,8 @@ openmeteo = Client(session = retry_session)
 
 url = "https://api.open-meteo.com/v1/forecast"
 params = {
-	"latitude": 52.52,
-	"longitude": 13.41,
+	"latitude": 34.052235, # LA Coord
+	"longitude": -118.243683, # LA Coord
 	"hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m"]
 }
 responses = openmeteo.weather_api(url, params=params)
