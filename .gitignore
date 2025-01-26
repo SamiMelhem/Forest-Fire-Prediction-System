@@ -84,3 +84,5 @@ target/
 
 # Misc
 !.gitkeep
+
+ws-default-keypair.pem
