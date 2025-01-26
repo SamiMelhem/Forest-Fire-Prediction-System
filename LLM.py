@@ -1,18 +1,18 @@
 from os import getenv
-import json
-import boto3
+from json import dumps
+from boto3 import client, setup_default_session
 from pydantic import BaseModel
 
 class WildfireAdvice(BaseModel):
     recommendations: str
 
-boto3.setup_default_session(
+setup_default_session(
     aws_access_key_id=getenv("AWS_ACCESS_KEY_ID"), 
     aws_secret_access_key=getenv("AWS_SECRET_ACCESS_KEY"),
     aws_session_token=getenv("AWS_SESSION_TOKEN"),
     region_name='us-west-2'
 )
-bedrock_client = boto3.client(service_name="bedrock-runtime")
+bedrock_client = client(service_name="bedrock-runtime")
 
 severity_guidelines = """
 We have three tiers of severity based on the size of fires and distance:
@@ -67,7 +67,7 @@ payload = {
     "modelId": "meta.llama3-1-405b-instruct-v1:0",
     "contentType": "application/json",
     "accept": "application/json",
-    "body": json.dumps(body_dict)
+    "body": dumps(body_dict)
 }
 response = bedrock_client.invoke_model(
     modelId=payload["modelId"],
