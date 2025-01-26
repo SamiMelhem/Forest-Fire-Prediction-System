@@ -74,7 +74,7 @@ export default function useMap() {
           source: "wildfires",
           layout: {},
           paint: {
-            "fill-color": "orange",
+            "fill-color": "red",
             "fill-opacity": [
               "case",
               ["boolean", ["feature-state", "hover"], false],
@@ -87,6 +87,7 @@ export default function useMap() {
         console.error(err);
       }
     });
+
     mapRef.current.on("move", () => {
       const mapCenter = mapRef.current.getCenter();
       const mapZoom = mapRef.current.getZoom();
@@ -100,7 +101,43 @@ export default function useMap() {
     };
   }, []);
 
-  const handleFetchData = async () => {};
+  const handleFetchData = async () => {
+    try {
+      const prediction = await axios.get(`${BACKEND_BASE_URL}/predict`);
+      const polygon = {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: prediction.data
+          }
+        },
+        generateId: true,
+      };
+
+      console.log(polygon);
+
+      mapRef.current.addSource("prediction", polygon);
+      mapRef.current.addLayer({
+        id: "prediction",
+        type: "fill",
+        source: "prediction",
+        layout: {},
+        paint: {
+          "fill-color": "orange",
+          "fill-opacity": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            1,
+            0.5,
+          ],
+        },
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleReset = () => {
     mapRef.current.flyTo({
