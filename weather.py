@@ -12,7 +12,7 @@ params = {
 	"latitude": 34.052235, # LA Coord
 	"longitude": -118.243683, # LA Coord
 	"hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m"],
-    "temperature_unit": "fahrenheit",
+    "wind_speed_unit": "ms",
     "forecast_days": 3
 }
 responses = openmeteo.weather_api(url, params=params)
@@ -23,7 +23,7 @@ print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
 
 # --- Process hourly data ---
 hourly = response.Hourly()
-hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy() + 273.15
 hourly_wind_speed_10m = hourly.Variables(1).ValuesAsNumpy()
 hourly_wind_direction_10m = hourly.Variables(2).ValuesAsNumpy()
 
@@ -45,14 +45,14 @@ print("\nHourly dataframe:\n", hourly_dataframe.head(24))
 hourly_dataframe['day'] = hourly_dataframe['date'].dt.date
 
 hourly_dataframe.rename(columns={
-    "temperature_2m": "temperature (°F)",
-    "wind_speed_10m": "wind_speed (km/h)",
+    "temperature_2m": "temperature (K)",
+    "wind_speed_10m": "wind_speed (m/s)",
     "wind_direction_10m": "wind_direction (°)"
 }, inplace=True)
 
 daily_means = hourly_dataframe.groupby('day').agg({
-    'temperature (°F)': 'mean',
-    'wind_speed (km/h)': 'mean',
+    'temperature (K)': 'mean',
+    'wind_speed (m/s)': 'mean',
     'wind_direction (°)': 'mean'
 }).reset_index()
 
